@@ -279,11 +279,9 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local notification = LMG2L["Notification Frame_19"]
-local buildButton = LMG2L["TextButton_7"]
 
 local hiddenPos = UDim2.new(-0.3, 0, 0.005, 0) 
 local visiblePos = UDim2.new(0.002, 0, 0.005, 0)
-
 local tInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
 local function hasTools()
@@ -299,36 +297,50 @@ local function hideNotification()
 end
 
 local function showNotification()
+    if notification.Visible then return end
     notification.Position = hiddenPos
     notification.Visible = true
     TweenService:Create(notification, tInfo, {Position = visiblePos}):Play()
 end
 
-if not hasTools() then
-    showNotification()
-else
-    notification.Visible = false
+local function handleButtonClick(button, needsBtools)
+    button.MouseButton1Click:Connect(function()
+        if needsBtools and not hasTools() then
+            showNotification()
+        else
+            if needsBtools then
+                hideNotification()
+            end
+        end
+    end)
 end
 
-buildButton.MouseButton1Click:Connect(function()
+handleButtonClick(LMG2L["TextButton_7"], true)
+handleButtonClick(LMG2L["TextButton_Message"], false)
+handleButtonClick(LMG2L["TextButton_Hint"], false)
+handleButtonClick(LMG2L["TextButton_Realm"], false)
+handleButtonClick(LMG2L["TextButton_BloodPop"], false)
+handleButtonClick(LMG2L["TextButton_Theme"], false)
+handleButtonClick(LMG2L["TextButton_JumpStyle"], false)
+
+LMG2L["GetBtoolsButton"].MouseButton1Click:Connect(function()
     pcall(function()
         local RS = game:GetService("ReplicatedStorage")
         local cmd = RS:WaitForChild("HDAdminHDClient").Signals.RequestCommandSilent
         cmd:InvokeServer(";btools me")
     end)
-    
     hideNotification()
 end)
 
 task.spawn(function()
-    while notification.Visible do
-        if hasTools() then
+    while true do
+        if hasTools() and notification.Visible then
             hideNotification()
-            break
         end
         task.wait(1)
     end
 end)
+
 
 
 
