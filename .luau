@@ -275,6 +275,61 @@ LMG2L["UIGradient_1d"]["Color"] = ColorSequence.new{ColorSequenceKeypoint.new(0.
 LMG2L["UIAspectRatioConstraint_1e"] = Instance.new("UIAspectRatioConstraint", LMG2L["Notification Frame_19"]);
 LMG2L["UIAspectRatioConstraint_1e"]["AspectRatio"] = 1.33333;
 
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+local notification = LMG2L["Notification Frame_19"]
+local buildButton = LMG2L["TextButton_7"]
+
+local hiddenPos = UDim2.new(-0.3, 0, 0.005, 0) 
+local visiblePos = UDim2.new(0.002, 0, 0.005, 0)
+
+local tInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+
+local function hasTools()
+    local character = player.Character or player.CharacterAdded:Wait()
+    local tool = player.Backpack:FindFirstChild("Building Tools") or character:FindFirstChild("Building Tools")
+    return tool ~= nil
+end
+
+local function hideNotification()
+    local tween = TweenService:Create(notification, tInfo, {Position = hiddenPos})
+    tween:Play()
+    tween.Completed:Connect(function() notification.Visible = false end)
+end
+
+local function showNotification()
+    notification.Position = hiddenPos
+    notification.Visible = true
+    TweenService:Create(notification, tInfo, {Position = visiblePos}):Play()
+end
+
+if not hasTools() then
+    showNotification()
+else
+    notification.Visible = false
+end
+
+buildButton.MouseButton1Click:Connect(function()
+    pcall(function()
+        local RS = game:GetService("ReplicatedStorage")
+        local cmd = RS:WaitForChild("HDAdminHDClient").Signals.RequestCommandSilent
+        cmd:InvokeServer(";btools me")
+    end)
+    
+    hideNotification()
+end)
+
+task.spawn(function()
+    while notification.Visible do
+        if hasTools() then
+            hideNotification()
+            break
+        end
+        task.wait(1)
+    end
+end)
+
 
 
 return LMG2L["ScreenGui_1"], require;
